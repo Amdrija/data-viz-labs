@@ -8,7 +8,11 @@ To implement:
 * filter [1, 2, 3, 4, 5] by isEven
 
 */
+function isEven(a) {
+	return a % 2 == 0
+}
 
+console.log([1, 2, 3, 4, 5].filter(isEven))
 
 /*
 ### multiply
@@ -18,6 +22,12 @@ To implement:
 * multiply(1,2,3,4,5) should return 120
 */
 
+function multiply(...args) {
+	return args.reduce((acc, a) => acc * a, 1)
+}
+
+console.log(multiply(2, 4, 5))
+console.log(multiply(2, 3, 4, 5))
 
 /*
 ## Closures
@@ -28,6 +38,12 @@ To implement:
 * filter [0, 1, 2, 3, 4, 5, 6] by divisibleBy(3)
 */
 
+function divisibleBy(divisor) {
+	return (x) => x % divisor == 0
+}
+
+console.log([0, 1, 2, 3, 4, 5, 6].filter(divisibleBy(3)))
+
 
 /*
 ### increment
@@ -35,6 +51,15 @@ To implement:
 * increment
 * initial value is 100, step size is 2
 */
+
+function increment(initialValue) {
+	return (incrementBy) => {
+		return () => initialValue += incrementBy
+	}
+}
+const inc = increment(100)(2)
+console.log(inc())
+console.log(inc())
 
 
 /*
@@ -45,7 +70,10 @@ colorCycle(colors=COLOR_CYCLE_DEFAULT)
 
 const COLOR_CYCLE_DEFAULT = ['red', 'green', 'magenta', 'blue'];
 
-
+function colorCycle(colors = COLOR_CYCLE_DEFAULT) {
+	let currentColor = 0
+	return () => colors[(currentColor++) % colors.length]
+}
 
 const cc_r_g = colorCycle(['red', 'green']);
 // This is a way to run 10 times, see the task about `range` below.
@@ -66,7 +94,22 @@ To implement:
 * filter range(100) by divisibility by 13
 */
 
-console.log('range(10)', range(10));
+function range(N) {
+	let rangeArr = []
+	for (let i = 0; i < N; i++) {
+		rangeArr.push(i)
+	}
+
+	return rangeArr
+}
+
+function rangeFunctional(N) {
+	let rangeArr = Array(N).fill(0)
+	
+	return rangeArr.map((value, index) => index)
+}
+
+console.log('range(10)', rangeFunctional(10));
 // Expeceted result:
 // [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -80,6 +123,14 @@ To implement:
 
 */
 
+function randomInRange(min_val = 0, max_val = 100) {
+	return Math.random() * (max_val - min_val) + min_val
+}
+
+function randomArray(N, min_val = 0, max_val = 100) {
+	return Array(N).fill(0).map((a) => randomInRange(min_val, max_val))
+}
+
 console.log('randomArray', randomArray(5, 0, 10));
 
 /*
@@ -89,6 +140,15 @@ console.log('randomArray', randomArray(5, 0, 10));
 	For example `countOccurrences("hello")` yields `{'h': 1, 'e': 1, 'l': 2, 'o': 1 }`.
 */
 
+function countOccurrences(string) {
+	return string.split("").reduce((map, char) => {
+		if (char.match(/\w/)) {
+			map[char] === undefined ? map[char] = 1 : map[char]++
+		}
+
+		return map
+	}, {})
+}
 
 console.log(countOccurrences('hello'));
 // Expected result:
@@ -107,11 +167,25 @@ console.log(countOccurrences('hello'));
 of characters in any text you input. You can pass a `colorCycle` with your colors as the second argument to color the bars.
 */
 
+function normalizeCounts(countMap) {
+	const sum = Object.values(countMap).reduce((sum, count) => sum += count, 0)
+
+	return Object.keys(countMap).reduce((normalizedMap, char) => {
+		normalizedMap[char] = countMap[char] / sum
+		return normalizedMap
+	}, {});
+}
+
 
 console.log(normalizeCounts(countOccurrences('hello')));
 // Expected result:
 // normalizeCounts({'h': 1, 'e': 1, 'l': 2, 'o': 1 }) ---> {'h': 0.2, 'e': 0.2, 'l': 0.4, 'o': 0.2 }
 
+function countOccurencesNormalized(string) {
+	return normalizeCounts(countOccurrences(string))
+}
+
+setCharacterCountingFunction(countOccurencesNormalized, colorCycle(["#f5576c", "#8fd3f4"]))
 
 /*
 ## Throwing balls
@@ -144,6 +218,16 @@ Use the `range` function to create the array of time points, then `map` them to 
 * Use `randomArray` to create 20 random angles between 0 deg and 90 deg, then plot the ball trajectories for each angle.
 */
 
+function simulateBall(v0, angle, num_steps = 256, dt = 0.05, g = -9.81) {
+	angle = angle * Math.PI / 180
+	return range(num_steps).map((value, index) => {
+		t = dt * index
+		x = v0 * Math.cos(angle) * t
+		y = v0 * Math.sin(angle) * t + g * t * t / 2
+		return [x, y]
+	}).filter(([x, y]) => y > 0)
+}
+
 const DEG_TO_RAD = Math.PI / 180.;
 
 
@@ -151,3 +235,6 @@ const ball_cc = colorCycle(['hsl(160, 100%, 64%)', 'hsl(200, 100%, 64%)', 'hsl(2
 plotBall(simulateBall(40, 60), ball_cc());
 plotBall(simulateBall(40, 30), ball_cc());
 plotBall(simulateBall(40, 45), ball_cc());
+
+const randomAngles = randomArray(5, 0, 90);
+randomAngles.forEach((angle) => plotBall(simulateBall(40, angle), ball_cc()))
